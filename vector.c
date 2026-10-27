@@ -3,8 +3,11 @@
 #include <stdlib.h>
 
 Vector* vec_create(ElemType type) {
+    if (type < T_SHORT || type > T_CHAR) {
+        return NULL;
+    }
     Vector* vec = malloc(sizeof(Vector));
-    if (vec == NULL || type < T_SHORT || type > T_CHAR) {
+    if (vec == NULL) {
         return NULL;
     }
     vec->data = NULL;
