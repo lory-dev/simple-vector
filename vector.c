@@ -127,15 +127,15 @@ int vec_erase(Vector* vec, size_t pos) {
     if (vec == NULL || pos >= vec->length) {
         return 1;
     }
-    vec->length -= 1;
-    if ((vec->capacity / 4) >= vec->length) {
-        shrink_vector(vec);
-    }
     char* bytes = (char *)vec->data;
     char* dst_slot = bytes + pos * sizeof_type(vec->type);
     char* src_slot = bytes + (pos + 1) * sizeof_type(vec->type);
     size_t size = (vec->length - pos - 1) * sizeof_type(vec->type);
     memmove(dst_slot, src_slot, size);
+    vec->length -= 1;
+    if ((vec->capacity / 4) >= vec->length) {
+        shrink_vector(vec);
+    }
     return 0;
 }
 
