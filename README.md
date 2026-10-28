@@ -9,7 +9,7 @@ Creating a vector:
 Vector* vec = vec_create(T_SHORT);
 ```
 
-Each vector has a type, chosen when it's created. The values you pass in must have that same type:
+Each vector has a type, chosen when it's created. The values you pass in must have that same type. Passing a value of a different type is undefined behavior. Example:
 
 ```c
 Vector* ints = vec_create(T_INT);
@@ -48,6 +48,7 @@ Inserting and removing:
 double c = 0.5;
 vec_insert(vec, 0, &c);   /* puts 0.5 at the front */
 vec_erase(vec, 1);        /* removes the element at index 1 */
+vec_pop_back(vec);        /* removes the last element */
 ```
 
 Checking the size and state:
@@ -62,7 +63,7 @@ if (vec_empty(vec)) {
 Clearing and freeing:
 
 ```c
-vec_clear(vec);     /* removes all elements, keeps the vector usable */
+vec_clear(vec);     /* removes all elements; the vector can still be used again */
 vec_destroy(vec);   /* frees the vector */
 ```
 
@@ -70,7 +71,10 @@ vec_destroy(vec);   /* frees the vector */
 
 Functions that can fail return `0` on success and `1` on failure:
 
-- `vec_push_back`, `vec_insert`, `vec_erase`, and `vec_pop_back`
+- `vec_push_back` fails if `data` is `NULL` or the vector can't grow.
+- `vec_insert` fails if `pos` is greater than the length.
+- `vec_erase` fails if `pos` is not less than the length.
+- `vec_pop_back` fails on an empty vector.
 - `vec_create` returns `NULL` on failure, including for an unknown type.
 - `vec_at` returns `NULL` if the index is out of range.
 
@@ -78,4 +82,6 @@ Functions that can fail return `0` on success and `1` on failure:
 
 Every vector from `vec_create` must be passed to `vec_destroy` exactly once.
 
-A pointer from `vec_at` is only valid until the next `vec_push_back`, `vec_insert`, or `vec_erase`. Those calls can move the buffer, so read the value again after changing the vector.
+The vector grows as you add elements. When an element is removed and the length is at most a quarter of the capacity, the capacity is halved, so the unused memory is returned.
+
+A pointer from `vec_at` is only valid until the next call that changes the vector: `vec_push_back`, `vec_insert`, `vec_erase`, `vec_pop_back`, `vec_clear`, or `vec_destroy`. Those calls can move or free the buffer, so you should read the value again after changing the vector.

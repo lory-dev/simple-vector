@@ -38,8 +38,7 @@ static size_t sizeof_type(ElemType type) {
     }
 }
 
-static int grow_vector(Vector* vec) {
-    size_t new_capacity = (vec->capacity > 0) ? (2 * vec->capacity) : 1;
+static int change_vector_capacity(Vector* vec, size_t new_capacity) {
     void* tmp = realloc(vec->data, new_capacity * sizeof_type(vec->type));
     if (tmp == NULL) {
         return 1;
@@ -47,6 +46,25 @@ static int grow_vector(Vector* vec) {
     vec->data = tmp;
     vec->capacity = new_capacity;
     return 0;
+}
+
+static int grow_vector(Vector* vec) {
+    size_t new_capacity = (vec->capacity > 0) ? (2 * vec->capacity) : 1;
+    return change_vector_capacity(vec, new_capacity);
+}
+
+/*
+ * Shrinks the vector to half its current capacity.
+ */
+static int shrink_vector(Vector* vec) {
+    if (vec == NULL || vec->capacity == 0) {
+        return 1;
+    }
+    size_t new_capacity = vec->capacity / 2;
+    if (new_capacity > vec->length || new_capacity == 0) {
+        return 1;
+    }
+    return change_vector_capacity(vec, new_capacity);
 }
 
 int vec_push_back(Vector* vec, const void* data) {
@@ -72,8 +90,10 @@ int vec_pop_back(Vector* vec) {
     if (vec->length == 0) {
         return 1;
     }
-    // todo: add quarter scale back check
     vec->length -= 1;
+    if ((vec->capacity / 4) >= vec->length) {
+        shrink_vector(vec);
+    }
     return 0;
 }
 
@@ -107,13 +127,15 @@ int vec_erase(Vector* vec, size_t pos) {
     if (vec == NULL || pos >= vec->length) {
         return 1;
     }
-    // todo: add quarter scale back check
+    vec->length -= 1;
+    if ((vec->capacity / 4) >= vec->length) {
+        shrink_vector(vec);
+    }
     char* bytes = (char *)vec->data;
     char* dst_slot = bytes + pos * sizeof_type(vec->type);
     char* src_slot = bytes + (pos + 1) * sizeof_type(vec->type);
     size_t size = (vec->length - pos - 1) * sizeof_type(vec->type);
     memmove(dst_slot, src_slot, size);
-    vec->length -= 1;
     return 0;
 }
 
