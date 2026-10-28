@@ -61,7 +61,7 @@ static int shrink_vector(Vector* vec) {
         return 1;
     }
     size_t new_capacity = vec->capacity / 2;
-    if (new_capacity > vec->length || new_capacity == 0) {
+    if (new_capacity < vec->length || new_capacity == 0) {
         return 1;
     }
     return change_vector_capacity(vec, new_capacity);
